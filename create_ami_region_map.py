@@ -7,6 +7,11 @@ def create_ami_region_map(ami_description='ubuntu/images/hvm-ssd/ubuntu-bionic-1
     """
     Function: Takes an AMI description as input and looks in each region for AMI's
     that match.  Returns a dict of the matches using the regions as keys.
+        {
+            'us-east-1':{'ami':'ami-5cc39523'},
+            'us-west-1':{'ami':'ami-d7b355b4'},
+            ...
+        }
     """
     ami_region_map = dict()
 
