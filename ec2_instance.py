@@ -50,7 +50,7 @@ def main():
             'Instance',
             Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%X'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
-            InstanceType='t1.micro',
+            InstanceType='t2.micro',
             KeyName=Ref(keyname_param),
             SecurityGroups=[Ref(ec2_security_group)],
             UserData=Base64(
