@@ -1,4 +1,5 @@
 '''Module: Make an EC2 Instance'''
+import time
 import troposphere.ec2 as ec2
 from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
@@ -47,7 +48,7 @@ def main():
     ec2_instance = template.add_resource(
         ec2.Instance(
             'Instance',
-            Tags=[{'Key':'Name', 'Value':'Stack Instance'},],
+            Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%X'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
             InstanceType='t1.micro',
             KeyName=Ref(keyname_param),
@@ -56,8 +57,19 @@ def main():
                 Join(
                     '',
                     [
-                        '#!/bin/bash -xe\n',
-                        'apt install -y nginx\n',
+                        '#!/bin/bash -x\n',
+                        'exec > /tmp/user-data.log 2>&1\n'
+                        'unset UCF_FORCE_CONFFOLD\n',
+                        'export UCF_FORCE_CONFFNEW=YES\n',
+                        'ucf --purge /boot/grub/menu.lst\n',
+                        'export DEBIAN_FRONTEND=noninteractive\n',
+                        'echo "deb http://pkg.jenkins-ci.org/debian binary/" > /etc/apt/sources.list.d/jenkins.list\n',
+                        'wget -q -O - http://pkg.jenkins-ci.org/debian-stable/jenkins-ci.org.key | apt-key add -\n',
+                        'apt-get update\n',
+                        'apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade\n',
+                        'apt-get install -y nginx\n',
+                        'apt-get install -y openjdk-8-jdk\n',
+                        'apt-get install -y jenkins\n',
                     ]
                 )
             )

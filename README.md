@@ -8,3 +8,7 @@ aws ec2 describe-images \
  | sort -k2 -r \
  | head -n1
 ```
+
+# User Data Script Location
+
+`/var/lib/cloud/instance/scripts/part-001`
