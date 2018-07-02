@@ -48,7 +48,7 @@ def main():
     ec2_instance = template.add_resource(
         ec2.Instance(
             'Instance',
-            Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%X'))},],
+            Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%c'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
             InstanceType='t2.micro',
             KeyName=Ref(keyname_param),
@@ -64,11 +64,13 @@ def main():
                         'ucf --purge /boot/grub/menu.lst\n',
                         'export DEBIAN_FRONTEND=noninteractive\n',
                         'echo "deb http://pkg.jenkins-ci.org/debian binary/" > /etc/apt/sources.list.d/jenkins.list\n',
-                        'wget -q -O - http://pkg.jenkins-ci.org/debian-stable/jenkins-ci.org.key | apt-key add -\n',
+                        'wget -q -O jenkins-ci.org.key http://pkg.jenkins-ci.org/debian-stable/jenkins-ci.org.key\n'
+                        'apt-key add jenkins-ci.org.key\n',
                         'apt-get update\n',
                         '#apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade\n',
-			'apt-get -y install python-pip\n',
-			'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
+			            'apt-get install -y python-pip\n',
+			            'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
+                        '/usr/local/bin/cfn-init --verbose --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
                         'apt-get install -y nginx\n',
                         'apt-get install -y openjdk-8-jdk\n',
                         'apt-get install -y jenkins\n',
@@ -80,8 +82,8 @@ def main():
 
     template.add_output([
         Output(
-            'PublicDNS',
-            Description='Public DNS',
+            'PublicDnsName',
+            Description='PublicDnsName',
             Value=GetAtt(ec2_instance, 'PublicDnsName'),
         ),
     ])

@@ -5,6 +5,9 @@ template: ec2_instance.yml
 ec2_instance.yml: ec2_instance.py
 	python ec2_instance.py | tee ec2_instance.yml
 
+lint: ec2_instance.py
+	pylint ec2_instance.py
+
 clean:
 	rm ec2_instance.yml
 
@@ -18,4 +21,4 @@ delete-stack:
 	aws --profile=devday cloudformation delete-stack \
 		--stack-name $(STACK_NAME)
 
-.PHONY: clean stack template delete-stack
+.PHONY: clean stack template delete-stack lint
