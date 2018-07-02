@@ -65,7 +65,7 @@ def main():
                     "config": InitConfig(
                         files=InitFiles({
                             "/etc/nginx/conf.d/jenkins.conf": InitFile(
-                                content='upstream jenkins { server localhost:8080; } server { listen 80 default_server; listen [::]:80  default_server; location / { proxy_pass http://jenkins; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; } }',
+                                content='server { listen 80 default_server; listen [::]:80  default_server; location / { proxy_pass http://localhost:8080; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; } }',
                                 mode="000644",
                                 owner="root",
                                 group="root"
