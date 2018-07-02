@@ -3,10 +3,10 @@ JQ=/usr/local/bin/jq
 PROFILE=devday
 STACK_NAME=cfn-basic-ec2-public
 
-template: ec2_instance.yml
-
 ec2_instance.yml: ec2_instance.py
 	python ec2_instance.py | tee ec2_instance.yml
+
+template: ec2_instance.yml
 
 lint: ec2_instance.py
 	pylint ec2_instance.py
@@ -19,11 +19,17 @@ stack: template
 		--stack-name $(STACK_NAME) \
 		--template-body file://ec2_instance.yml \
 		--parameters ParameterKey=KeyName,ParameterValue=mjenkins.key
-	 $(AWS) --profile=$(PROFILE) cloudformation wait stack-create-complete --stack-name $(STACK_NAME)
-	 $(AWS) --profile=$(PROFILE) cloudformation describe-stacks --stack-name cfn-basic-ec2-public | $(JQ) .Stacks[0].Outputs
+	 $(AWS) --profile=$(PROFILE) cloudformation wait stack-create-complete \
+		 --stack-name $(STACK_NAME)
+	 $(AWS) --profile=$(PROFILE) cloudformation describe-stacks \
+		 --stack-name cfn-basic-ec2-public | $(JQ) .Stacks[0].Outputs
+
+describe-stack:
+	 $(AWS) --profile=$(PROFILE) cloudformation describe-stacks \
+		 --stack-name cfn-basic-ec2-public | $(JQ) .Stacks[0].Outputs
 
 delete-stack:
 	$(AWS) --profile=$(PROFILE) cloudformation delete-stack \
 		--stack-name $(STACK_NAME)
 
-.PHONY: clean stack template delete-stack lint
+.PHONY: template lint clean stack describe-stack delete-stack
