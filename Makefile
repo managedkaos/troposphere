@@ -22,14 +22,16 @@ stack: template
 	 $(AWS) --profile=$(PROFILE) cloudformation wait stack-create-complete \
 		 --stack-name $(STACK_NAME)
 	 $(AWS) --profile=$(PROFILE) cloudformation describe-stacks \
-		 --stack-name cfn-basic-ec2-public | $(JQ) .Stacks[0].Outputs
+		 --stack-name $(STACK_NAME) | $(JQ) .Stacks[0].Outputs
 
 describe-stack:
 	 $(AWS) --profile=$(PROFILE) cloudformation describe-stacks \
-		 --stack-name cfn-basic-ec2-public | $(JQ) .Stacks[0].Outputs
+		 --stack-name $(STACK_NAME) | $(JQ) .Stacks[0].Outputs
 
 delete-stack:
 	$(AWS) --profile=$(PROFILE) cloudformation delete-stack \
+		--stack-name $(STACK_NAME)
+	$(AWS) --profile=$(PROFILE) cloudformation wait stack-delete-complete \
 		--stack-name $(STACK_NAME)
 
 .PHONY: template lint clean stack describe-stack delete-stack

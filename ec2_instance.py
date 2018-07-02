@@ -52,9 +52,23 @@ def main():
             cloudformation.Init({
                     "config": cloudformation.InitConfig(
                         files=cloudformation.InitFiles({
-                            "/tmp/configs.txt": cloudformation.InitFile(
-                                content='this is only a test',
-                                mode="000777",
+                            "/etc/nginx/conf.d/jenkins.conf": cloudformation.InitFile(
+                                content='''
+                                    upstream jenkins {
+                                        server localhost:8080;
+                                    }
+
+                                    server {
+                                        listen 80 default_server;
+                                        listen [::]:80  default_server;
+                                        location / {
+                                            proxy_pass http://jenkins;
+                                            proxy_set_header Host $host;
+                                            proxy_set_header X-Real-IP $remote_addr;
+                                        }
+                                    }
+                                ''',
+                                mode="000644",
                                 owner="root",
                                 group="root"
                             )
@@ -84,10 +98,13 @@ def main():
                         '#apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade\n',
 			            'apt-get install -y python-pip\n',
 			            'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
-                        '/usr/local/bin/cfn-init --verbose --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
                         'apt-get install -y nginx\n',
                         'apt-get install -y openjdk-8-jdk\n',
                         'apt-get install -y jenkins\n',
+                        '/usr/local/bin/cfn-init --verbose --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
+                        'unlink /etc/nginx/sites-enabled/default\n'
+                        'systemctl reload nginx\n',
+                        'cat /var/lib/jenkins/secrets/initialAdminPassword\n',
                     ]
                 )
             )
