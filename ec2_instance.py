@@ -15,8 +15,21 @@ def main():
         Parameter(
             'KeyName',
             Description='Name of an existing EC2 KeyPair for SSH access',
-            ConstraintDescription='must be the name of an existing EC2 KeyPair.',
+            ConstraintDescription='Must be the name of an existing EC2 KeyPair.',
             Type='AWS::EC2::KeyPair::KeyName',
+        )
+    )
+    
+    password_param = template.add_parameter(
+        Parameter(
+            'PassWord',
+            Type='String',
+            NoEcho=True,
+            MinLength=8,
+            MaxLength=64,
+            Description='Password for the admin account',
+            ConstraintDescription='A complex password at least eight chars long with alphanumeric characters, dashes and underscores.',
+            AllowedPattern="[-_a-zA-Z0-9]*",
         )
     )
 
@@ -93,9 +106,11 @@ def main():
                         'apt-get install -y jenkins\n',
                         '# Wait for Jenkins to Set Up\n'
                         "until [ $(curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080) -eq 403 ]; do sleep 1; done\n"
+                        'sleep 10\n'
+                        '# Change the password for the admin account\n'
+                        "echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount(\"admin\", \"",Ref(password_param),"\")' | java -jar /var/cache/jenkins/war/WEB-INF/jenkins-cli.jar -s \"http://localhost:8080/\" -auth \"admin:$(cat /var/lib/jenkins/secrets/initialAdminPassword)\" groovy =\n"
                         '/usr/local/bin/cfn-init --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
                         'unlink /etc/nginx/sites-enabled/default\n'
-                        'cat /var/lib/jenkins/secrets/initialAdminPassword\n',
                         'systemctl reload nginx\n',
                         '/usr/local/bin/cfn-signal -e $? --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
                     ]
@@ -108,7 +123,7 @@ def main():
         Output(
             'PublicDnsName',
             Description='PublicDnsName',
-            Value=GetAtt(ec2_instance, 'PublicDnsName'),
+            Value=Join('',['http://', GetAtt(ec2_instance, 'PublicDnsName'),])
         ),
     ])
 
