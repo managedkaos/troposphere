@@ -6,15 +6,13 @@ STACK_NAME=cfn-basic-ec2-public
 ec2_instance.yml: ec2_instance.py
 	python ec2_instance.py | tee ec2_instance.yml
 
-template: ec2_instance.yml
-
 lint: ec2_instance.py
 	pylint ec2_instance.py
 
 clean:
 	rm ec2_instance.yml
 
-stack: template
+stack: ec2_instance.yml
 	$(AWS) --profile=$(PROFILE) cloudformation create-stack \
 		--stack-name $(STACK_NAME) \
 		--template-body file://ec2_instance.yml \
@@ -34,4 +32,4 @@ delete-stack:
 	$(AWS) --profile=$(PROFILE) cloudformation wait stack-delete-complete \
 		--stack-name $(STACK_NAME)
 
-.PHONY: template lint clean stack describe-stack delete-stack
+.PHONY: lint clean stack describe-stack delete-stack
