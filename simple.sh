@@ -1,0 +1,1 @@
+python simple.py > simple.yml && /usr/local/bin/aws --profile=devday cloudformation create-stack --stack-name simple --template-body file://simple.yml --parameters ParameterKey=KeyName,ParameterValue=mjenkins.key
