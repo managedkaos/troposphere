@@ -3,8 +3,8 @@ import time
 import troposphere.ec2 as ec2
 from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
-from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile
-from troposphere.cloudformation import Metadata, WaitCondition, WaitConditionHandle
+from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile, Metadata
+from troposphere.policies import CreationPolicy, ResourceSignal
 from create_ami_region_map import create_ami_region_map
 
 def main():
@@ -21,17 +21,6 @@ def main():
     )
 
     template.add_mapping('RegionMap', create_ami_region_map())
-
-    #wait_handle = template.add_resource(WaitConditionHandle("waithandle"))
-
-    #wait_condition = template.add_resource(
-    #    WaitCondition(
-    #        "waitcondition",
-    #        Handle=Ref(wait_handle),
-    #        Count=1,
-    #        Timeout="600",
-    #    )
-    #)
 
     ec2_security_group = template.add_resource(
         ec2.SecurityGroup(
@@ -74,6 +63,9 @@ def main():
                     )
                 }),
             ),
+            CreationPolicy=CreationPolicy(
+                ResourceSignal=ResourceSignal(Timeout='PT15M')
+            ),
             Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%c'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
             InstanceType='t2.micro',
@@ -93,18 +85,19 @@ def main():
                         'wget -q -O jenkins-ci.org.key http://pkg.jenkins-ci.org/debian-stable/jenkins-ci.org.key\n'
                         'apt-key add jenkins-ci.org.key\n',
                         'apt-get update\n',
-                        '#apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade\n',
+                        'apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade\n',
 			            'apt-get install -y python-pip\n',
 			            'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
                         'apt-get install -y nginx\n',
                         'apt-get install -y openjdk-8-jdk\n',
                         'apt-get install -y jenkins\n',
-                        '/usr/local/bin/cfn-init --verbose --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
+                        '# Wait for Jenkins to Set Up\n'
+                        "until [ $(curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080) -eq 403 ]; do sleep 1; done\n"
+                        '/usr/local/bin/cfn-init --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
                         'unlink /etc/nginx/sites-enabled/default\n'
-                        'systemctl reload nginx\n',
                         'cat /var/lib/jenkins/secrets/initialAdminPassword\n',
-                        #'/usr/local/bin/cfn-signal --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), Ref(wait_condition), '\n',
-                        #'/usr/local/bin/cfn-signal --success=true --data="{key:value}" ', Ref(wait_condition), '\n',
+                        'systemctl reload nginx\n',
+                        '/usr/local/bin/cfn-signal -e $? --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
                     ]
                 )
             )
