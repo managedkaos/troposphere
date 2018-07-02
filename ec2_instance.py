@@ -1,6 +1,7 @@
 '''Module: Make an EC2 Instance'''
 import time
 import troposphere.ec2 as ec2
+from troposphere import cloudformation
 from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
 from create_ami_region_map import create_ami_region_map
@@ -44,10 +45,23 @@ def main():
         )
     )
 
-
     ec2_instance = template.add_resource(
         ec2.Instance(
             'Instance',
+            Metadata=cloudformation.Metadata(
+            cloudformation.Init({
+                    "config": cloudformation.InitConfig(
+                        files=cloudformation.InitFiles({
+                            "/tmp/configs.txt": cloudformation.InitFile(
+                                content='this is only a test',
+                                mode="000777",
+                                owner="root",
+                                group="root"
+                            )
+                        }),
+                    )
+                }),
+            ),
             Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%c'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
             InstanceType='t2.micro',
