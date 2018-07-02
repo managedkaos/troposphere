@@ -1,23 +1,23 @@
 AWS=/usr/local/bin/aws
 JQ=/usr/local/bin/jq
 PROFILE=devday
-STACK_NAME=cfn-basic-ec2-public
-PASSWORD='C0mpl3x_Pa55w0rd'
+STACK_NAME=jenkins_master
+PASSWORD=C0mpl3x_Pa55w0rd
 KEYNAME=mjenkins.key
 
-ec2_instance.yml: ec2_instance.py
-	python ec2_instance.py | tee ec2_instance.yml
+$(STACK_NAME).yml: $(STACK_NAME).py
+	python $< | tee $@
 
-lint: ec2_instance.py
-	pylint ec2_instance.py
+lint: $(STACK_NAME).py
+	pylint $<
 
 clean:
-	rm ec2_instance.yml
+	@rm $(STACK_NAME).yml || echo "All clean! :D"
 
-stack: ec2_instance.yml
-	$(AWS) --profile=$(PROFILE) cloudformation create-stack \
+stack: $(STACK_NAME).yml
+	@$(AWS) --profile=$(PROFILE) cloudformation create-stack \
 		--stack-name $(STACK_NAME) \
-		--template-body file://ec2_instance.yml \
+		--template-body file://$(STACK_NAME).yml \
 		--parameters ParameterKey=KeyName,ParameterValue=$(KEYNAME) \
 		             ParameterKey=PassWord,ParameterValue=$(PASSWORD)
 	 $(AWS) --profile=$(PROFILE) cloudformation wait stack-create-complete \
