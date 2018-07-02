@@ -3,8 +3,7 @@ import time
 import troposphere.ec2 as ec2
 from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
-from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile
-from troposphere.cloudformation import Metadata, WaitCondition, WaitConditionHandle
+from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile, Metadata
 from troposphere.policies import CreationPolicy, ResourceSignal
 from create_ami_region_map import create_ami_region_map
 
