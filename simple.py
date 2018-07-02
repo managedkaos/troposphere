@@ -19,6 +19,18 @@ def main():
             Type='AWS::EC2::KeyPair::KeyName',
         )
     )
+    password_param = template.add_parameter(
+        Parameter(
+            'PassWord',
+            Type='String',
+            NoEcho=True,
+            MinLength=8,
+            MaxLength=64,
+            Description='Password for the admin account',
+            ConstraintDescription='A complex password at least eight chars long with alphanumeric characters, dashes and underscores.',
+            AllowedPattern="[-_a-zA-Z0-9]*",
+        )
+    )
 
     ec2_security_group = template.add_resource(
         ec2.SecurityGroup(
