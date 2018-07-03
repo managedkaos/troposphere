@@ -19,7 +19,7 @@ def main():
             Type='AWS::EC2::KeyPair::KeyName',
         )
     )
-    
+
     password_param = template.add_parameter(
         Parameter(
             'PassWord',
@@ -79,7 +79,7 @@ def main():
             CreationPolicy=CreationPolicy(
                 ResourceSignal=ResourceSignal(Timeout='PT15M')
             ),
-            Tags=[{'Key':'Name', 'Value':'Stack Instance {}'.format(time.strftime('%c'))},],
+            Tags=[{'Key':'Name', 'Value':'Jenkins Master {}'.format(time.strftime('%c'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
             InstanceType='t2.micro',
             KeyName=Ref(keyname_param),
