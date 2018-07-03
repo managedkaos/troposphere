@@ -1,7 +1,7 @@
 AWS=/usr/local/bin/aws
 JQ=/usr/local/bin/jq
 PROFILE=devday
-STACKNAME=jenkins_master
+STACKNAME=jenkinsmaster
 PASSWORD=C0mpl3x_Pa55w0rd
 KEYNAME=mjenkins.key
 
