@@ -38,6 +38,7 @@ def main():
     ec2_security_group = template.add_resource(
         ec2.SecurityGroup(
             'SecurityGroup',
+            Tags=[{'Key':'Name', 'Value':'Jenkins Master {}'.format(time.strftime('%c'))},],
             GroupDescription='SSH, HTTP/HTTPS open for 0.0.0.0/0',
             SecurityGroupIngress=[
                 ec2.SecurityGroupRule(
