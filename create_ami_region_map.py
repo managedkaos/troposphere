@@ -1,9 +1,10 @@
 '''
 Module: Creates an AMI region map
 '''
+import sys
 import boto3
 
-def create_ami_region_map(ami_description='ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64*'):
+def create_ami_region_map(profile_name='mmx', ami_description='ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64*'):
     """
     Function: Takes an AMI description as input and looks in each region for AMI's
     that match.  Returns a dict of the matches using the regions as keys.
@@ -15,7 +16,7 @@ def create_ami_region_map(ami_description='ubuntu/images/hvm-ssd/ubuntu-bionic-1
     """
     ami_region_map = dict()
 
-    session = boto3.Session(profile_name='devday')
+    session = boto3.Session(profile_name=profile_name)
     client = session.client('ec2')
 
     response = client.describe_regions()
@@ -36,4 +37,7 @@ def create_ami_region_map(ami_description='ubuntu/images/hvm-ssd/ubuntu-bionic-1
     return ami_region_map
 
 if __name__ == '__main__':
-    print(create_ami_region_map())
+    if len(sys.argv) == 2:
+        print(create_ami_region_map(profile_name=sys.argv[1], ami_description=sys.argv[2]))
+    else:
+        print(create_ami_region_map())
