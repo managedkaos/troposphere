@@ -5,7 +5,6 @@ from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
 from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile, Metadata
 from troposphere.policies import CreationPolicy, ResourceSignal
-from create_ami_region_map import create_ami_region_map
 
 def main():
     '''Function: Generates the Cloudformation template'''
@@ -33,7 +32,7 @@ def main():
         )
     )
 
-    template.add_mapping('RegionMap', create_ami_region_map())
+    template.add_mapping('RegionMap', {'ap-south-1': {'ami': 'ami-ee8ea481'}, 'eu-west-3': {'ami': 'ami-daf040a7'}, 'eu-west-2': {'ami': 'ami-ddb950ba'}, 'eu-west-1': {'ami': 'ami-d2414e38'}, 'ap-northeast-2': {'ami': 'ami-65d86d0b'}, 'ap-northeast-1': {'ami': 'ami-e875a197'}, 'sa-east-1': {'ami': 'ami-ccd48ea0'}, 'ca-central-1': {'ami': 'ami-c3e567a7'}, 'ap-southeast-1': {'ami': 'ami-31e7e44d'}, 'ap-southeast-2': {'ami': 'ami-23c51c41'}, 'eu-central-1': {'ami': 'ami-3c635cd7'}, 'us-east-1': {'ami': 'ami-5cc39523'}, 'us-east-2': {'ami': 'ami-67142d02'}, 'us-west-1': {'ami': 'ami-d7b355b4'}, 'us-west-2': {'ami': 'ami-39c28c41'}})
 
     ec2_security_group = template.add_resource(
         ec2.SecurityGroup(
