@@ -1,10 +1,13 @@
 '''Module: Make an EC2 Instance'''
 import time
 import troposphere.ec2 as ec2
+from troposphere.iam import Role, InstanceProfile, Policy
 from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
 from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile, Metadata
 from troposphere.policies import CreationPolicy, ResourceSignal
+from awacs.aws import Allow, Statement, Principal, Policy
+from awacs.sts import AssumeRole
 
 def main():
     '''Function: Generates the Cloudformation template'''
@@ -99,20 +102,21 @@ def main():
                         'apt-key add jenkins-ci.org.key\n',
                         'apt-get update\n',
                         'apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade\n',
-			            'apt-get install -y python-pip\n',
-			            'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
+                        'apt-get install -y python-pip\n',
+                        'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
                         'apt-get install -y nginx\n',
                         'apt-get install -y openjdk-8-jdk\n',
                         'apt-get install -y jenkins\n',
                         '# Wait for Jenkins to Set Up\n'
-                        "until [ $(curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080) -eq 403 ]; do sleep 1; done\n"
-                        'sleep 10\n'
-                        '# Change the password for the admin account\n'
-                        "echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount(\"admin\", \"",Ref(password_param),"\")' | java -jar /var/cache/jenkins/war/WEB-INF/jenkins-cli.jar -s \"http://localhost:8080/\" -auth \"admin:$(cat /var/lib/jenkins/secrets/initialAdminPassword)\" groovy =\n"
+                        "until [ $(curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080) -eq 403 ]; do sleep 1; done\n",
+                        'sleep 10\n',
+                        '# Change the password for the admin account\n',
+                        "echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount(\"admin\", \"",Ref(password_param),"\")' | java -jar /var/cache/jenkins/war/WEB-INF/jenkins-cli.jar -s \"http://localhost:8080/\" -auth \"admin:$(cat /var/lib/jenkins/secrets/initialAdminPassword)\" groovy =\n",
                         '/usr/local/bin/cfn-init --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
-                        'unlink /etc/nginx/sites-enabled/default\n'
+                        'unlink /etc/nginx/sites-enabled/default\n',
                         'systemctl reload nginx\n',
-                        '/usr/local/bin/cfn-signal -e $? --resource=Instance --region=', Ref('AWS::Region'), ' --stack=', Ref('AWS::StackName'), '\n',
+                        '/usr/local/bin/cfn-signal -e $? --resource=Instance --region=', Ref('AWS::Region'),
+                        ' --stack=', Ref('AWS::StackName'), '\n',
                     ]
                 )
             )

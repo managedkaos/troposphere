@@ -18,6 +18,7 @@ stack: $(STACKNAME).yml
 	@$(AWS) --profile=$(PROFILE) cloudformation create-stack \
 		--stack-name $(STACKNAME) \
 		--template-body file://$(STACKNAME).yml \
+		--tags Key=Name,Value=$(STACKNAME) \
 		--parameters ParameterKey=KeyName,ParameterValue=$(KEYNAME) \
 		             ParameterKey=PassWord,ParameterValue=$(PASSWORD)
 	 $(AWS) --profile=$(PROFILE) cloudformation wait stack-create-complete \
