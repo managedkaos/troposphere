@@ -37,4 +37,9 @@ delete-stack:
 	$(AWS) --profile=$(PROFILE) cloudformation wait stack-delete-complete \
 		--stack-name $(STACKNAME)
 
-.PHONY: lint clean stack describe-stack delete-stack
+ssh:
+	ssh -i ~/.ssh/$(STACKNAME).pem ubuntu@$(shell $(AWS) \
+		--profile=$(PROFILE) cloudformation describe-stacks \
+		--stack-name $(STACKNAME) | $(JQ) -r .Stacks[0].Outputs[1].OutputValue)
+
+.PHONY: lint clean stack describe-stack delete-stack ssh

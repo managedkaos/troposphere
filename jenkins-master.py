@@ -1,13 +1,11 @@
 '''Module: Make an EC2 Instance'''
 import time
 import troposphere.ec2 as ec2
-from troposphere.iam import Role, InstanceProfile, Policy
+from troposphere.iam import Role, InstanceProfile, ManagedPolicy
 from troposphere import Base64, FindInMap, GetAtt, Join
 from troposphere import Parameter, Output, Ref, Template
 from troposphere.cloudformation import Init, InitConfig, InitFiles, InitFile, Metadata
 from troposphere.policies import CreationPolicy, ResourceSignal
-from awacs.aws import Allow, Statement, Principal, Policy
-from awacs.sts import AssumeRole
 
 def main():
     '''Function: Generates the Cloudformation template'''
@@ -40,7 +38,6 @@ def main():
     ec2_security_group = template.add_resource(
         ec2.SecurityGroup(
             'SecurityGroup',
-            Tags=[{'Key':'Name', 'Value':'Jenkins Master {}'.format(time.strftime('%c'))},],
             GroupDescription='SSH, HTTP/HTTPS open for 0.0.0.0/0',
             SecurityGroupIngress=[
                 ec2.SecurityGroupRule(
@@ -61,7 +58,20 @@ def main():
             ],
         )
     )
-
+    ec2_role = template.add_resource(
+        Role('EC2Role',
+		AssumeRolePolicyDocument={ "Version" : "2012-10-17", "Statement": [ { "Effect": "Allow", "Principal": { "Service": [ "ec2.amazonaws.com" ] }, "Action": [ "sts:AssumeRole" ] } ] },
+    	)
+    )
+    ec2_policy = template.add_resource(
+        ManagedPolicy(
+        'EC2Policy',
+            PolicyDocument={ "Version": "2012-10-17", "Statement": [ { "Action": "ec2:*", "Resource": "*", "Effect": "Allow" } ] }, Roles=[Ref(ec2_role)]
+        )
+    )
+    ec2_profile = template.add_resource(
+        InstanceProfile("EC2InstanceProfile", Roles=[Ref(ec2_role)])
+    )
     ec2_instance = template.add_resource(
         ec2.Instance(
             'Instance',
@@ -82,9 +92,9 @@ def main():
             CreationPolicy=CreationPolicy(
                 ResourceSignal=ResourceSignal(Timeout='PT15M')
             ),
-            Tags=[{'Key':'Name', 'Value':'Jenkins Master {}'.format(time.strftime('%c'))},],
             ImageId=FindInMap('RegionMap', Ref('AWS::Region'), 'ami'),
             InstanceType='t2.micro',
+            IamInstanceProfile=Ref(ec2_profile),
             KeyName=Ref(keyname_param),
             SecurityGroups=[Ref(ec2_security_group)],
             UserData=Base64(
