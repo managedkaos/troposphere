@@ -3,7 +3,7 @@ JQ=/usr/local/bin/jq
 PROFILE=devday
 STACKNAME=jenkins-master
 PASSWORD=C0mpl3x_Pa55w0rd
-KEYNAME=mjenkins.key
+KEYNAME=$(STACKNAME)
 
 $(STACKNAME).yml: $(STACKNAME).py
 	python $< | tee $@
