@@ -2,7 +2,7 @@ AWS=/usr/local/bin/aws
 JQ=/usr/local/bin/jq
 PROFILE=devday
 STACKNAME=jenkins-master
-PASSWORD=C0mpl3x_Pa55w0rd
+PASSWORD=C0mpl3xPa55w0rd
 KEYNAME=$(STACKNAME)
 
 $(STACKNAME).yml: $(STACKNAME).py
