@@ -16,6 +16,7 @@ clean:
 
 stack: $(STACKNAME).yml
 	@$(AWS) --profile=$(PROFILE) cloudformation create-stack \
+		--capabilities CAPABILITY_IAM \
 		--stack-name $(STACKNAME) \
 		--template-body file://$(STACKNAME).yml \
 		--tags Key=Name,Value=$(STACKNAME) \
